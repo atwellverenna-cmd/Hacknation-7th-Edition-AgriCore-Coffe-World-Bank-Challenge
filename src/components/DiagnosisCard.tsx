@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Play, Square, UserCheck } from "lucide-react";
-import { ANSWER_BANK, TIER_LABEL, confidenceTier, type Lang } from "@/lib/answer-bank-ui";
+import { ANSWER_BANK, TIER_LABEL, confidenceTier, type Lang } from "@/lib/answer-bank";
 import type { DiagnosisResult } from "@/lib/diagnosis";
 import { speak } from "@/lib/store";
 
