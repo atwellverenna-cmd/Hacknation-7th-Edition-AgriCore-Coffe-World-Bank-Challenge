@@ -1,4 +1,4 @@
-# Offline Love Notes
+# AgriCore
 
 please create a website or app based on the problem outlined and parameters. I need the app to be a PWA (an installable web app with offline caching)
 
