@@ -48,7 +48,7 @@ export function CoopSync() {
           <input
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="e.g. KIBALE-24"
+            placeholder="AGRICORE"
             className="min-w-0 flex-1 rounded-xl border border-foreground/10 bg-background/60 px-3 py-2 text-[13px] uppercase text-foreground"
           />
           <button

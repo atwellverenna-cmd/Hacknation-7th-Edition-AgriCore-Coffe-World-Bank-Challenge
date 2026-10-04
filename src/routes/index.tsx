@@ -80,14 +80,12 @@ function HomePage() {
     <>
       {/* Header */}
       <header className="glass-chip flex items-center gap-3 px-3 py-2 shadow-sm">
-        <div className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-brand to-violet font-display text-[13px] font-bold text-white">
+        <div className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand to-violet font-display text-[15px] font-bold text-primary-foreground">
           K
         </div>
-        <div className="leading-tight">
-          <div className="text-[13px] font-semibold">{PLOT.farmer}</div>
-          <div className="text-[10px] text-muted-foreground">
-            {PLOT.coop} · {PLOT.trees} trees
-          </div>
+        <div className="min-w-0 leading-tight">
+          <div className="font-display text-[15px] font-bold text-foreground">Kopi</div>
+          <div className="truncate text-[10px] text-muted-foreground">{PLOT.farmer} · {PLOT.coop} · {PLOT.trees} trees</div>
         </div>
         <div className="ml-auto flex items-center gap-1.5 rounded-full bg-teal/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-teal">
           <WifiOff className="size-3" />

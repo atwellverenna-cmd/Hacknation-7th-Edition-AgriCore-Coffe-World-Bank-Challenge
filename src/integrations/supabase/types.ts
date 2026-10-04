@@ -16,16 +16,19 @@ export type Database = {
     Tables: {
       coops: {
         Row: {
+          active: boolean
           code: string
           created_at: string
           name: string
         }
         Insert: {
+          active?: boolean
           code: string
           created_at?: string
           name: string
         }
         Update: {
+          active?: boolean
           code?: string
           created_at?: string
           name?: string

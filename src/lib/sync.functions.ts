@@ -37,7 +37,7 @@ async function admin() {
 }
 
 async function coopName(db: Awaited<ReturnType<typeof admin>>, c: string) {
-  const { data } = await db.from("coops").select("name").eq("code", c).maybeSingle();
+  const { data } = await db.from("coops").select("name").eq("code", c).eq("active", true).maybeSingle();
   return data?.name ?? null;
 }
 
