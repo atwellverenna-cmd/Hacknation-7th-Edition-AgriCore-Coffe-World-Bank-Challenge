@@ -65,6 +65,7 @@ function HomePage() {
       createdAt: diagnosis.analyzedAt,
       status: "queued",
       thumbnail: thumb,
+      source: diagnosis.source,
     });
   };
 
