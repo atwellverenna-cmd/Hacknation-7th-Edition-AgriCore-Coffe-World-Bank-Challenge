@@ -14,7 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      coops: {
+        Row: {
+          code: string
+          created_at: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          confidence: number
+          coop_code: string
+          created_at: string
+          diagnosis: string
+          farmer_name: string | null
+          id: string
+          outcome: string | null
+          reviewed_at: string | null
+          severity: number
+          source: string | null
+          status: string
+          thumbnail: string | null
+          tier: string
+          updated_at: string
+          visit_note: string | null
+          visit_requested_at: string | null
+        }
+        Insert: {
+          confidence: number
+          coop_code: string
+          created_at: string
+          diagnosis: string
+          farmer_name?: string | null
+          id: string
+          outcome?: string | null
+          reviewed_at?: string | null
+          severity?: number
+          source?: string | null
+          status?: string
+          thumbnail?: string | null
+          tier: string
+          updated_at?: string
+          visit_note?: string | null
+          visit_requested_at?: string | null
+        }
+        Update: {
+          confidence?: number
+          coop_code?: string
+          created_at?: string
+          diagnosis?: string
+          farmer_name?: string | null
+          id?: string
+          outcome?: string | null
+          reviewed_at?: string | null
+          severity?: number
+          source?: string | null
+          status?: string
+          thumbnail?: string | null
+          tier?: string
+          updated_at?: string
+          visit_note?: string | null
+          visit_requested_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_coop_code_fkey"
+            columns: ["coop_code"]
+            isOneToOne: false
+            referencedRelation: "coops"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
