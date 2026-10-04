@@ -37,6 +37,7 @@ export type Database = {
           confidence: number
           coop_code: string
           created_at: string
+          device_id: string | null
           diagnosis: string
           farmer_name: string | null
           id: string
@@ -55,6 +56,7 @@ export type Database = {
           confidence: number
           coop_code: string
           created_at: string
+          device_id?: string | null
           diagnosis: string
           farmer_name?: string | null
           id: string
@@ -73,6 +75,7 @@ export type Database = {
           confidence?: number
           coop_code?: string
           created_at?: string
+          device_id?: string | null
           diagnosis?: string
           farmer_name?: string | null
           id?: string
