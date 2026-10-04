@@ -3,6 +3,7 @@ import { useState } from "react";
 import { MapPin, Undo2 } from "lucide-react";
 import { ANSWER_BANK, TIER_LABEL } from "@/lib/answer-bank";
 import { PLOT } from "@/lib/cached-data";
+import { FarmerName } from "@/components/FarmerName";
 import {
   cancelVisitRequest,
   loadMyReports,
@@ -55,6 +56,7 @@ function DashboardPage() {
         {PLOT.farmer} · {PLOT.coop} · {PLOT.trees} trees. Your checks waiting for the officer, and
         any visits you've asked for.
       </p>
+      <FarmerName />
       <CoopSync />
 
       {/* Visit requests */}

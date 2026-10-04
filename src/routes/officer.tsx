@@ -6,6 +6,8 @@ import { OUTCOME_LABEL, loadReports, markReviewed, timeAgo, type LeafReport } fr
 import { exportReviewedPdf } from "@/lib/report-pdf";
 import { useReports } from "@/lib/sync";
 import { CoopSync } from "@/components/CoopSync";
+import { OfficerSignIn } from "@/components/OfficerSignIn";
+import type { Officer } from "@/lib/store";
 
 export const Route = createFileRoute("/officer")({
   head: () => ({
@@ -29,9 +31,13 @@ function OfficerPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [busy, setBusy] = useState(false);
+  const [officer, setOfficer] = useState<Officer | null>(null);
+  const [farmer, setFarmer] = useState("");
+  const farmers = [...new Set(reports.map((r) => r.farmer ?? "Unnamed"))].sort();
+  const byFarmer = (r: LeafReport) => !farmer || (r.farmer ?? "Unnamed") === farmer;
 
-  const queued = reports.filter((r) => r.status === "queued");
-  const reviewed = reports.filter((r) => r.status === "reviewed");
+  const queued = reports.filter((r) => r.status === "queued" && byFarmer(r));
+  const reviewed = reports.filter((r) => r.status === "reviewed" && byFarmer(r));
 
   const fromTs = from ? new Date(`${from}T00:00:00`).getTime() : -Infinity;
   const toTs = to ? new Date(`${to}T23:59:59`).getTime() : Infinity;
@@ -61,6 +67,24 @@ function OfficerPage() {
         the tool never decides for the farmer.
       </p>
       <CoopSync />
+      <OfficerSignIn onChange={setOfficer} />
+      {farmers.length > 0 && (
+        <label className="mt-4 block text-[11px] text-muted-foreground">
+          Farmer
+          <select
+            value={farmer}
+            onChange={(e) => setFarmer(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-foreground/10 bg-background/60 px-3 py-2 text-[13px] text-foreground"
+          >
+            <option value="">All farmers ({farmers.length})</option>
+            {farmers.map((f) => (
+              <option key={f} value={f}>
+                {f} ({reports.filter((r) => (r.farmer ?? "Unnamed") === f).length})
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <div className="glass-card mt-4 p-4">
         <div className="flex items-center justify-between">
@@ -84,6 +108,7 @@ function OfficerPage() {
                         <img src={r.thumbnail} alt="" className="size-10 rounded-lg object-cover" loading="lazy" />
                       )}
                       <div className="min-w-0 flex-1">
+                        <div className="truncate text-[12px] font-semibold text-brand">{r.farmer ?? "Unnamed farmer"}</div>
                         <div className="truncate text-[13px] font-medium">
                           {entry.name.en} · {Math.round(r.confidence * 100)}%
                         </div>
@@ -99,6 +124,7 @@ function OfficerPage() {
                         )}
                       </div>
                     </div>
+                    {officer ? (
                     <div className="mt-2 flex gap-1.5">
                       <button
                         onClick={() => review(r.id, "confirmed")}
@@ -119,6 +145,9 @@ function OfficerPage() {
                         <MapPin className="size-3.5" /> Visit
                       </button>
                     </div>
+                    ) : (
+                      <p className="mt-2 text-[11px] text-muted-foreground">Sign in with your officer PIN to review.</p>
+                    )}
                   </div>
                 );
               })}
@@ -168,7 +197,8 @@ function OfficerPage() {
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-foreground/5 px-3 py-2 text-[12px]">
                 <span className="size-1.5 rounded-full bg-teal" />
                 <span className="truncate">
-                  {ANSWER_BANK[r.diagnosis].name.en} · {OUTCOME_LABEL[r.outcome ?? "confirmed"]}
+                  {r.farmer ?? "Unnamed"} · {ANSWER_BANK[r.diagnosis].name.en} · {OUTCOME_LABEL[r.outcome ?? "confirmed"]}
+                  {r.reviewedBy ? ` · by ${r.reviewedBy}` : ""}
                 </span>
                 <span className="ml-auto shrink-0 text-muted-foreground">{timeAgo(r.reviewedAt ?? r.createdAt)}</span>
               </div>

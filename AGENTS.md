@@ -12,3 +12,4 @@
 - Leaf diagnosis: Lovable AI (server fn) may only pick an answer-bank label; on-device deterministic fallback when offline/unavailable. Why: advice must never be AI-generated.
 - Officer PDF export is generated client-side (jspdf) so it works offline.
 - Co-op access checks the active flag so retired test codes remain stored without admitting new joins or syncs.
+- Report sign-off requires a valid officer PIN (hashed per co-op in officers table); the server sets reviewed_by and ignores client review fields otherwise. Why: identify who reviewed and stop farmers signing off.
