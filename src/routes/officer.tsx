@@ -73,7 +73,7 @@ function OfficerPage() {
         ) : (
           <div className="mt-2 space-y-2">
             {[...queued]
-              .sort((a, b) => a.confidence - b.confidence)
+              .sort((a, b) => Number(b.visitRequestedAt ?? 0) - Number(a.visitRequestedAt ?? 0) || a.confidence - b.confidence)
               .map((r) => {
                 const entry = ANSWER_BANK[r.diagnosis];
                 return (
