@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CheckCheck, FileDown, MapPin, Pencil } from "lucide-react";
 import { ANSWER_BANK, TIER_LABEL } from "@/lib/answer-bank";
 import { OUTCOME_LABEL, loadReports, markReviewed, timeAgo, type LeafReport } from "@/lib/store";
 import { exportReviewedPdf } from "@/lib/report-pdf";
+import { useReports } from "@/lib/sync";
+import { CoopSync } from "@/components/CoopSync";
 
 export const Route = createFileRoute("/officer")({
   head: () => ({
@@ -23,11 +25,10 @@ export const Route = createFileRoute("/officer")({
 });
 
 function OfficerPage() {
-  const [reports, setReports] = useState<LeafReport[]>([]);
+  const reports = useReports(loadReports, [] as LeafReport[]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [busy, setBusy] = useState(false);
-  useEffect(() => setReports(loadReports()), []);
 
   const queued = reports.filter((r) => r.status === "queued");
   const reviewed = reports.filter((r) => r.status === "reviewed");
@@ -41,7 +42,6 @@ function OfficerPage() {
 
   const review = (id: string, outcome: NonNullable<LeafReport["outcome"]>) => {
     markReviewed(id, outcome);
-    setReports(loadReports());
   };
 
   const download = async () => {
@@ -57,9 +57,10 @@ function OfficerPage() {
     <>
       <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight">Officer view</h1>
       <p className="mt-1 text-[13px] text-muted-foreground">
-        Reports queue on the farmer's phone and sync to you when there is signal. Low-confidence cases first — the tool
-        never decides for the farmer.
+        Reports from every farmer in your co-op arrive here when their phones have signal. Low-confidence cases first —
+        the tool never decides for the farmer.
       </p>
+      <CoopSync />
 
       <div className="glass-card mt-4 p-4">
         <div className="flex items-center justify-between">

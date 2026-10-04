@@ -14,6 +14,7 @@ import { Home, FileText, BarChart3, UserCheck, Tractor } from "lucide-react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { registerAppServiceWorker } from "../lib/pwa-register";
+import { useSyncEngine } from "../lib/sync";
 
 function NotFoundComponent() {
   return (
@@ -142,6 +143,7 @@ function RootComponent() {
   useEffect(() => {
     void registerAppServiceWorker();
   }, []);
+  useSyncEngine();
 
   return (
     <QueryClientProvider client={queryClient}>
