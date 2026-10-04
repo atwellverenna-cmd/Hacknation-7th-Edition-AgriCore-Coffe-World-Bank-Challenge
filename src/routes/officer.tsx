@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CheckCheck } from "lucide-react";
+import { CheckCheck, FileDown, MapPin, Pencil } from "lucide-react";
 import { ANSWER_BANK, TIER_LABEL } from "@/lib/answer-bank";
-import { loadReports, markReviewed, timeAgo, type LeafReport } from "@/lib/store";
+import { OUTCOME_LABEL, loadReports, markReviewed, timeAgo, type LeafReport } from "@/lib/store";
+import { exportReviewedPdf } from "@/lib/report-pdf";
 
 export const Route = createFileRoute("/officer")({
   head: () => ({
@@ -23,14 +24,33 @@ export const Route = createFileRoute("/officer")({
 
 function OfficerPage() {
   const [reports, setReports] = useState<LeafReport[]>([]);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [busy, setBusy] = useState(false);
   useEffect(() => setReports(loadReports()), []);
 
   const queued = reports.filter((r) => r.status === "queued");
   const reviewed = reports.filter((r) => r.status === "reviewed");
 
-  const review = (id: string) => {
-    markReviewed(id);
+  const fromTs = from ? new Date(`${from}T00:00:00`).getTime() : -Infinity;
+  const toTs = to ? new Date(`${to}T23:59:59`).getTime() : Infinity;
+  const filtered = reviewed.filter((r) => {
+    const t = r.reviewedAt ?? r.createdAt;
+    return t >= fromTs && t <= toTs;
+  });
+
+  const review = (id: string, outcome: NonNullable<LeafReport["outcome"]>) => {
+    markReviewed(id, outcome);
     setReports(loadReports());
+  };
+
+  const download = async () => {
+    setBusy(true);
+    try {
+      await exportReviewedPdf(filtered, from, to);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -57,25 +77,40 @@ function OfficerPage() {
               .map((r) => {
                 const entry = ANSWER_BANK[r.diagnosis];
                 return (
-                  <div key={r.id} className="flex items-center gap-3 rounded-xl bg-foreground/5 px-3 py-2.5">
-                    {r.thumbnail && (
-                      <img src={r.thumbnail} alt="" className="size-10 rounded-lg object-cover" loading="lazy" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-[13px] font-medium">
-                        {entry.name.en} · {Math.round(r.confidence * 100)}%
-                      </div>
-                      <div className="text-[11px] text-muted-foreground">
-                        {TIER_LABEL[r.tier].en} · {timeAgo(r.createdAt)}
+                  <div key={r.id} className="rounded-xl bg-foreground/5 px-3 py-2.5">
+                    <div className="flex items-center gap-3">
+                      {r.thumbnail && (
+                        <img src={r.thumbnail} alt="" className="size-10 rounded-lg object-cover" loading="lazy" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[13px] font-medium">
+                          {entry.name.en} · {Math.round(r.confidence * 100)}%
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {TIER_LABEL[r.tier].en} · {timeAgo(r.createdAt)}
+                        </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => review(r.id)}
-                      className="flex items-center gap-1 rounded-full bg-teal/15 px-3 py-1.5 text-[11px] font-semibold text-teal"
-                    >
-                      <CheckCheck className="size-3.5" />
-                      Review
-                    </button>
+                    <div className="mt-2 flex gap-1.5">
+                      <button
+                        onClick={() => review(r.id, "confirmed")}
+                        className="flex items-center gap-1 rounded-full bg-teal/15 px-2.5 py-1.5 text-[11px] font-semibold text-teal"
+                      >
+                        <CheckCheck className="size-3.5" /> Confirm
+                      </button>
+                      <button
+                        onClick={() => review(r.id, "corrected")}
+                        className="flex items-center gap-1 rounded-full bg-amber/15 px-2.5 py-1.5 text-[11px] font-semibold text-amber"
+                      >
+                        <Pencil className="size-3.5" /> Correct
+                      </button>
+                      <button
+                        onClick={() => review(r.id, "visit")}
+                        className="flex items-center gap-1 rounded-full bg-rust/15 px-2.5 py-1.5 text-[11px] font-semibold text-rust"
+                      >
+                        <MapPin className="size-3.5" /> Visit
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -83,15 +118,51 @@ function OfficerPage() {
         )}
       </div>
 
-      {reviewed.length > 0 && (
+      <div className="glass-card mt-4 p-4">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Download summary
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <label className="text-[11px] text-muted-foreground">
+            From
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-foreground/10 bg-background/60 px-2 py-2 text-[13px] text-foreground"
+            />
+          </label>
+          <label className="text-[11px] text-muted-foreground">
+            To
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-foreground/10 bg-background/60 px-2 py-2 text-[13px] text-foreground"
+            />
+          </label>
+        </div>
+        <button
+          onClick={download}
+          disabled={busy || filtered.length === 0}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand to-violet py-3 text-[13px] font-semibold text-primary-foreground disabled:opacity-50"
+        >
+          <FileDown className="size-4" />
+          {filtered.length === 0 ? "No reviewed checks in this period" : `Download PDF (${filtered.length})`}
+        </button>
+      </div>
+
+      {filtered.length > 0 && (
         <div className="glass-card mt-4 p-4">
           <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Reviewed</div>
           <div className="mt-2 space-y-2">
-            {reviewed.map((r) => (
+            {filtered.map((r) => (
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-foreground/5 px-3 py-2 text-[12px]">
                 <span className="size-1.5 rounded-full bg-teal" />
-                {ANSWER_BANK[r.diagnosis].name.en}
-                <span className="ml-auto text-muted-foreground">{timeAgo(r.createdAt)}</span>
+                <span className="truncate">
+                  {ANSWER_BANK[r.diagnosis].name.en} · {OUTCOME_LABEL[r.outcome ?? "confirmed"]}
+                </span>
+                <span className="ml-auto shrink-0 text-muted-foreground">{timeAgo(r.reviewedAt ?? r.createdAt)}</span>
               </div>
             ))}
           </div>
