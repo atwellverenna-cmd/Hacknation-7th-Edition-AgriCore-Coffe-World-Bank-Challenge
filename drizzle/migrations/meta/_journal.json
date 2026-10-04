@@ -15,6 +15,13 @@
       "when": 1791087053451,
       "tag": "0001_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791090377514,
+      "tag": "0002_add_coop_activation",
+      "breakpoints": true
     }
   ]
 }
