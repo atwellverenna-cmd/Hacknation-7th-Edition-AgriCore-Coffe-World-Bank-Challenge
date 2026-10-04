@@ -1,8 +1,8 @@
 /**
- * Local persistence. Everything lives on the device (localStorage) — no
- * account, no server. Reports queue here until an officer reviews them;
- * cached prices/weather carry a saved-at timestamp so the app can always
- * say how old the data is.
+ * Local persistence. Reports are saved on the device first (localStorage) so
+ * everything works offline. When a co-op code is set, changed reports are
+ * marked "pending" and sent to the co-op's online database when there is
+ * signal (see sync.ts); the officer's phone pulls them from there.
  */
 
 import type { DiagnosisId, ConfidenceTier, Lang } from "./answer-bank";
@@ -17,15 +17,17 @@ export interface LeafReport {
   severity: number;
   createdAt: number;
   status: "queued" | "reviewed";
-  /** objectURL is session-scoped, so we persist a small dataURL thumbnail. */
   thumbnail?: string | undefined;
   reviewedAt?: number | undefined;
-  /** Officer's outcome when reviewing. */
   outcome?: "confirmed" | "corrected" | "visit" | undefined;
   source?: "ai" | "on-device" | undefined;
-  /** Farmer asked the officer to come see this tree in person. */
   visitRequestedAt?: number | undefined;
   visitNote?: string | undefined;
+  /** Last change time — newest change wins when syncing. */
+  updatedAt?: number | undefined;
+  /** Which phone made the check. */
+  deviceId?: string | undefined;
+  farmer?: string | undefined;
 }
 
 export const OUTCOME_LABEL = {
@@ -36,6 +38,21 @@ export const OUTCOME_LABEL = {
 
 const REPORTS_KEY = "kopi.reports";
 const LANG_KEY = "kopi.lang";
+const PENDING_KEY = "kopi.pending";
+const COOP_KEY = "kopi.coop";
+const DEVICE_KEY = "kopi.device";
+
+export const REPORTS_EVENT = "kopi:reports";
+export const DIRTY_EVENT = "kopi:dirty";
+
+export function deviceId(): string {
+  let id = localStorage.getItem(DEVICE_KEY);
+  if (!id) {
+    id = `d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    localStorage.setItem(DEVICE_KEY, id);
+  }
+  return id;
+}
 
 export function loadReports(): LeafReport[] {
   try {
@@ -46,30 +63,80 @@ export function loadReports(): LeafReport[] {
   }
 }
 
-export function saveReport(report: LeafReport) {
-  const reports = [report, ...loadReports()].slice(0, 50);
+/** Reports made on this phone (the farmer's own). */
+export function loadMyReports(): LeafReport[] {
+  const me = deviceId();
+  return loadReports().filter((r) => !r.deviceId || r.deviceId === me);
+}
+
+export function writeReports(reports: LeafReport[]) {
   localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+  window.dispatchEvent(new Event(REPORTS_EVENT));
+}
+
+export function loadPending(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(PENDING_KEY) ?? "[]") as string[];
+  } catch {
+    return [];
+  }
+}
+
+export function clearPending(ids: string[]) {
+  const done = new Set(ids);
+  localStorage.setItem(PENDING_KEY, JSON.stringify(loadPending().filter((i) => !done.has(i))));
+}
+
+function markDirty(id: string) {
+  const p = new Set(loadPending());
+  p.add(id);
+  localStorage.setItem(PENDING_KEY, JSON.stringify([...p]));
+  window.dispatchEvent(new Event(DIRTY_EVENT));
+}
+
+function update(id: string, patch: Partial<LeafReport>) {
+  writeReports(loadReports().map((r) => (r.id === id ? { ...r, ...patch, updatedAt: Date.now() } : r)));
+  markDirty(id);
+}
+
+export function saveReport(report: LeafReport) {
+  const full = { ...report, updatedAt: Date.now(), deviceId: deviceId() };
+  writeReports([full, ...loadReports()].slice(0, 300));
+  markDirty(report.id);
 }
 
 export function markReviewed(id: string, outcome: NonNullable<LeafReport["outcome"]> = "confirmed") {
-  const reports = loadReports().map((r) =>
-    r.id === id ? { ...r, status: "reviewed" as const, reviewedAt: Date.now(), outcome } : r,
-  );
-  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+  update(id, { status: "reviewed", reviewedAt: Date.now(), outcome });
 }
 
 export function requestVisit(id: string, note?: string) {
-  const reports = loadReports().map((r) =>
-    r.id === id ? { ...r, visitRequestedAt: Date.now(), visitNote: note?.trim() || undefined } : r,
-  );
-  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+  update(id, { visitRequestedAt: Date.now(), visitNote: note?.trim() || undefined });
 }
 
 export function cancelVisitRequest(id: string) {
-  const reports = loadReports().map((r) =>
-    r.id === id ? { ...r, visitRequestedAt: undefined, visitNote: undefined } : r,
-  );
-  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+  update(id, { visitRequestedAt: undefined, visitNote: undefined });
+}
+
+export function loadCoop(): { code: string; name: string } | null {
+  try {
+    return JSON.parse(localStorage.getItem(COOP_KEY) ?? "null") as { code: string; name: string } | null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveCoop(coop: { code: string; name: string } | null) {
+  if (coop) {
+    localStorage.setItem(COOP_KEY, JSON.stringify(coop));
+    // Send everything made on this phone so far.
+    const p = new Set(loadPending());
+    loadMyReports().forEach((r) => p.add(r.id));
+    localStorage.setItem(PENDING_KEY, JSON.stringify([...p]));
+    window.dispatchEvent(new Event(DIRTY_EVENT));
+  } else {
+    localStorage.removeItem(COOP_KEY);
+  }
+  window.dispatchEvent(new Event(REPORTS_EVENT));
 }
 
 export function loadLang(): Lang {
