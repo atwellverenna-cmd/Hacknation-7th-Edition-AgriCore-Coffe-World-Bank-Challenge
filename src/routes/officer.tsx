@@ -89,6 +89,13 @@ function OfficerPage() {
                         <div className="text-[11px] text-muted-foreground">
                           {TIER_LABEL[r.tier].en} · {timeAgo(r.createdAt)}
                         </div>
+                        {r.visitRequestedAt && (
+                          <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-rust">
+                            <MapPin className="size-3" />
+                            Farmer asked for a visit
+                            {r.visitNote ? ` — ${r.visitNote}` : ""}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="mt-2 flex gap-1.5">

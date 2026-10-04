@@ -9,7 +9,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { Home, FileText, BarChart3, UserCheck } from "lucide-react";
+import { Home, FileText, BarChart3, UserCheck, Tractor } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -130,6 +130,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 const NAV_ITEMS = [
   { to: "/", label: "Home", icon: Home },
+  { to: "/dashboard", label: "My farm", icon: Tractor },
   { to: "/reports", label: "Reports", icon: FileText },
   { to: "/market", label: "Market", icon: BarChart3 },
   { to: "/officer", label: "Officer", icon: UserCheck },
@@ -162,7 +163,7 @@ function RootComponent() {
 
         {/* Bottom navigation */}
         <nav className="fixed inset-x-0 bottom-0 z-10 flex justify-center border-t border-white/50 bg-white/50 px-4 pb-4 pt-3 backdrop-blur-xl">
-          <div className="grid w-full max-w-md grid-cols-4">
+          <div className="grid w-full max-w-md grid-cols-5">
             {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
