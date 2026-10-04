@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as MarketRouteImport } from './routes/market'
 import { Route as OfficerRouteImport } from './routes/officer'
 import { Route as ReportsRouteImport } from './routes/reports'
@@ -17,6 +18,11 @@ import { Route as ReportsRouteImport } from './routes/reports'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarketRoute = MarketRouteImport.update({
@@ -37,12 +43,14 @@ const ReportsRoute = ReportsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/market': typeof MarketRoute
   '/officer': typeof OfficerRoute
   '/reports': typeof ReportsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/market': typeof MarketRoute
   '/officer': typeof OfficerRoute
   '/reports': typeof ReportsRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
   '/market': typeof MarketRoute
   '/officer': typeof OfficerRoute
   '/reports': typeof ReportsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/market' | '/officer' | '/reports'
+  fullPaths: '/' | '/dashboard' | '/market' | '/officer' | '/reports'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/market' | '/officer' | '/reports'
-  id: '__root__' | '/' | '/market' | '/officer' | '/reports'
+  to: '/' | '/dashboard' | '/market' | '/officer' | '/reports'
+  id: '__root__' | '/' | '/dashboard' | '/market' | '/officer' | '/reports'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
   MarketRoute: typeof MarketRoute
   OfficerRoute: typeof OfficerRoute
   ReportsRoute: typeof ReportsRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/market': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
   MarketRoute: MarketRoute,
   OfficerRoute: OfficerRoute,
   ReportsRoute: ReportsRoute,

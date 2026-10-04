@@ -73,7 +73,7 @@ function OfficerPage() {
         ) : (
           <div className="mt-2 space-y-2">
             {[...queued]
-              .sort((a, b) => a.confidence - b.confidence)
+              .sort((a, b) => Number(b.visitRequestedAt ?? 0) - Number(a.visitRequestedAt ?? 0) || a.confidence - b.confidence)
               .map((r) => {
                 const entry = ANSWER_BANK[r.diagnosis];
                 return (
@@ -89,6 +89,13 @@ function OfficerPage() {
                         <div className="text-[11px] text-muted-foreground">
                           {TIER_LABEL[r.tier].en} · {timeAgo(r.createdAt)}
                         </div>
+                        {r.visitRequestedAt && (
+                          <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-rust">
+                            <MapPin className="size-3" />
+                            Farmer asked for a visit
+                            {r.visitNote ? ` — ${r.visitNote}` : ""}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="mt-2 flex gap-1.5">
