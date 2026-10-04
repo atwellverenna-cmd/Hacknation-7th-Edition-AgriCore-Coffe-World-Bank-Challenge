@@ -125,7 +125,8 @@ export function DiagnosisCard({
       )}
 
       <p className="mt-3 text-[10px] text-muted-foreground">
-        Advice #{entry.id} · reviewed by {entry.reviewedBy}
+        {result.source === "ai" ? "Identified by Lovable AI" : "Checked on this phone (offline)"} · Advice #
+        {entry.id} · reviewed by {entry.reviewedBy}
       </p>
     </div>
   );

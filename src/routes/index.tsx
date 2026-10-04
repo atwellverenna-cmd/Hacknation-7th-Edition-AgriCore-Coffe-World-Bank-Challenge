@@ -49,7 +49,8 @@ function HomePage() {
     setPhotoUrl(url);
     setPhase("analyzing");
     const buffer = await file.arrayBuffer();
-    const diagnosis = await diagnoseLeaf(buffer);
+    const aiImage = await makeThumbnail(file, 768, 0.8);
+    const diagnosis = await diagnoseLeaf(buffer, aiImage);
     setResult(diagnosis);
     setPhase("result");
 
@@ -134,7 +135,7 @@ function HomePage() {
             <div className="animate-scan absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-teal to-transparent" />
           </div>
           <p className="mt-3 text-center text-[13px] font-medium text-muted-foreground">
-            Analyzing on this phone… no signal needed
+            Checking the leaf… works even with no signal
           </p>
         </div>
       )}
@@ -201,15 +202,15 @@ function HomePage() {
   );
 }
 
-async function makeThumbnail(file: File): Promise<string | undefined> {
+async function makeThumbnail(file: File, size = 320, quality = 0.7): Promise<string | undefined> {
   try {
     const bitmap = await createImageBitmap(file);
     const canvas = document.createElement("canvas");
-    const scale = 320 / Math.max(bitmap.width, bitmap.height);
+    const scale = Math.min(1, size / Math.max(bitmap.width, bitmap.height));
     canvas.width = bitmap.width * scale;
     canvas.height = bitmap.height * scale;
     canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", 0.7);
+    return canvas.toDataURL("image/jpeg", quality);
   } catch {
     return undefined;
   }

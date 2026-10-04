@@ -19,7 +19,17 @@ export interface LeafReport {
   status: "queued" | "reviewed";
   /** objectURL is session-scoped, so we persist a small dataURL thumbnail. */
   thumbnail?: string | undefined;
+  reviewedAt?: number | undefined;
+  /** Officer's outcome when reviewing. */
+  outcome?: "confirmed" | "corrected" | "visit" | undefined;
+  source?: "ai" | "on-device" | undefined;
 }
+
+export const OUTCOME_LABEL = {
+  confirmed: "Diagnosis confirmed",
+  corrected: "Diagnosis corrected",
+  visit: "Farm visit needed",
+} as const;
 
 const REPORTS_KEY = "kopi.reports";
 const LANG_KEY = "kopi.lang";
@@ -38,8 +48,10 @@ export function saveReport(report: LeafReport) {
   localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
 }
 
-export function markReviewed(id: string) {
-  const reports = loadReports().map((r) => (r.id === id ? { ...r, status: "reviewed" as const } : r));
+export function markReviewed(id: string, outcome: NonNullable<LeafReport["outcome"]> = "confirmed") {
+  const reports = loadReports().map((r) =>
+    r.id === id ? { ...r, status: "reviewed" as const, reviewedAt: Date.now(), outcome } : r,
+  );
   localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
 }
 
