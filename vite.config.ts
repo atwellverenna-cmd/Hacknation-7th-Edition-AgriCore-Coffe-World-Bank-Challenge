@@ -43,7 +43,8 @@ export default defineConfig({
         },
         workbox: {
           // Navigations: network first, fall back to cache when offline.
-          navigateFallback: "/index.html",
+          // No navigateFallback — this app is SSR'd (no static index.html);
+          // visited pages are cached by the NetworkFirst rule below.
           navigateFallbackDenylist: [/^\/~oauth/],
           runtimeCaching: [
             {
