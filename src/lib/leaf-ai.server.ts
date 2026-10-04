@@ -41,7 +41,7 @@ export async function classifyLeaf(imageDataUrl: string, signal?: AbortSignal): 
         role: "user",
         content: [
           { type: "text", text: PROMPT },
-          { type: "image", image: match[2]!, mediaType: match[1]! },
+          { type: "file", data: match[2]!, mediaType: match[1]! },
         ],
       },
     ],
