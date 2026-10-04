@@ -23,6 +23,9 @@ export interface LeafReport {
   /** Officer's outcome when reviewing. */
   outcome?: "confirmed" | "corrected" | "visit" | undefined;
   source?: "ai" | "on-device" | undefined;
+  /** Farmer asked the officer to come see this tree in person. */
+  visitRequestedAt?: number | undefined;
+  visitNote?: string | undefined;
 }
 
 export const OUTCOME_LABEL = {
@@ -51,6 +54,20 @@ export function saveReport(report: LeafReport) {
 export function markReviewed(id: string, outcome: NonNullable<LeafReport["outcome"]> = "confirmed") {
   const reports = loadReports().map((r) =>
     r.id === id ? { ...r, status: "reviewed" as const, reviewedAt: Date.now(), outcome } : r,
+  );
+  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+}
+
+export function requestVisit(id: string, note?: string) {
+  const reports = loadReports().map((r) =>
+    r.id === id ? { ...r, visitRequestedAt: Date.now(), visitNote: note?.trim() || undefined } : r,
+  );
+  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+}
+
+export function cancelVisitRequest(id: string) {
+  const reports = loadReports().map((r) =>
+    r.id === id ? { ...r, visitRequestedAt: undefined, visitNote: undefined } : r,
   );
   localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
 }
