@@ -25,7 +25,7 @@ export function DiagnosisCard({
   result: DiagnosisResult;
   lang: Lang;
   onLangChange: (lang: Lang) => void;
-  thumbnail?: string;
+  thumbnail?: string | undefined;
 }) {
   const [playing, setPlaying] = useState(false);
   const entry = ANSWER_BANK[result.diagnosis];

@@ -10,6 +10,9 @@
 
 export type DiagnosisId = "leaf_rust" | "leaf_miner" | "cercospora" | "healthy";
 
+/** UI language: English or Luganda. */
+export type Lang = "en" | "lg";
+
 export interface AnswerBankEntry {
   id: DiagnosisId;
   name: { en: string; lg: string };

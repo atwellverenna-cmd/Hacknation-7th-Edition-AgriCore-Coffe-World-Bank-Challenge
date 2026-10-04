@@ -23,7 +23,7 @@ function hashBytes(bytes: Uint8Array): number {
   let h = 2166136261;
   const step = Math.max(1, Math.floor(bytes.length / 4096));
   for (let i = 0; i < bytes.length; i += step) {
-    h ^= bytes[i];
+    h ^= bytes[i] ?? 0;
     h = Math.imul(h, 16777619);
   }
   return h >>> 0;
@@ -36,7 +36,7 @@ export async function diagnoseLeaf(imageData: ArrayBuffer): Promise<DiagnosisRes
   // Simulate on-device inference time so the scanning state is visible.
   await new Promise((resolve) => setTimeout(resolve, 1600));
 
-  const diagnosis = DIAGNOSIS_IDS[h % DIAGNOSIS_IDS.length];
+  const diagnosis = DIAGNOSIS_IDS[h % DIAGNOSIS_IDS.length]!;
   // Spread confidence across all three tiers deterministically.
   const confidence = 0.32 + ((h >> 8) % 640) / 1000; // 0.32 – 0.96
   const severity = (h >> 20) % 3;

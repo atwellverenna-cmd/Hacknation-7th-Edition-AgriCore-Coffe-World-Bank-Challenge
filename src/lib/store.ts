@@ -5,7 +5,9 @@
  * say how old the data is.
  */
 
-import type { DiagnosisId, ConfidenceTier } from "./answer-bank";
+import type { DiagnosisId, ConfidenceTier, Lang } from "./answer-bank";
+
+export type { Lang };
 
 export interface LeafReport {
   id: string;
@@ -16,13 +18,11 @@ export interface LeafReport {
   createdAt: number;
   status: "queued" | "reviewed";
   /** objectURL is session-scoped, so we persist a small dataURL thumbnail. */
-  thumbnail?: string;
+  thumbnail?: string | undefined;
 }
 
 const REPORTS_KEY = "kopi.reports";
 const LANG_KEY = "kopi.lang";
-
-export type Lang = "en" | "lg";
 
 export function loadReports(): LeafReport[] {
   try {
