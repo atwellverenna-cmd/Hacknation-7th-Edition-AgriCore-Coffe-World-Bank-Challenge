@@ -21,7 +21,7 @@ export const CACHED_PRICES: CachedReading[] = [
   {
     label: "Kiboko (dry cherry)",
     value: "USh 4,200/kg",
-    detail: "Kibale co-op buying price",
+    detail: "Local buying price (example)",
     savedAt: now - 2 * DAY,
   },
   {
@@ -69,7 +69,7 @@ export const SOIL_CONTEXT = {
 
 export const PLOT = {
   farmer: "Noor",
-  coop: "Kibale co-op",
+  coop: "Agricore",
   trees: 24,
   variety: "Arabica · SL28",
   altitude: "1,540 m",
