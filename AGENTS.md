@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Leaf diagnosis: Lovable AI (server fn) may only pick an answer-bank label; on-device deterministic fallback when offline/unavailable. Why: advice must never be AI-generated.
+- Officer PDF export is generated client-side (jspdf) so it works offline.

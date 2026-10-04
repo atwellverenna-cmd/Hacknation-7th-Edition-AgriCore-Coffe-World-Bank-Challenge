@@ -1,14 +1,15 @@
 /**
- * On-device diagnosis.
+ * Leaf diagnosis.
  *
- * In the production build this is a quantized TensorFlow.js classifier
- * (<10 MB, fine-tuned on BRACOL) running fully offline. For this prototype
- * the inference is simulated deterministically from the image bytes, so the
- * same photo always yields the same result — including across offline
- * sessions — while the full three-tier confidence flow is real.
+ * Online: the photo is sent to Lovable AI, which may ONLY pick a label from
+ * the fixed answer bank (plus confidence + severity). The advice shown is
+ * always the agronomist-reviewed entry for that label — the AI never writes
+ * advice. Offline (or if the AI is unavailable): a deterministic on-device
+ * fallback runs, so the core flow still works with no signal.
  */
 
 import { DIAGNOSIS_IDS, type DiagnosisId } from "./answer-bank";
+import { classifyLeafPhoto } from "./leaf-ai.functions";
 
 export interface DiagnosisResult {
   diagnosis: DiagnosisId;
@@ -17,6 +18,7 @@ export interface DiagnosisResult {
   /** 0–2 severity band index into the answer bank entry. */
   severity: number;
   analyzedAt: number;
+  source: "ai" | "on-device";
 }
 
 function hashBytes(bytes: Uint8Array): number {
@@ -29,17 +31,26 @@ function hashBytes(bytes: Uint8Array): number {
   return h >>> 0;
 }
 
-export async function diagnoseLeaf(imageData: ArrayBuffer): Promise<DiagnosisResult> {
-  const bytes = new Uint8Array(imageData);
-  const h = hashBytes(bytes);
-
-  // Simulate on-device inference time so the scanning state is visible.
+async function onDevice(imageData: ArrayBuffer): Promise<DiagnosisResult> {
+  const h = hashBytes(new Uint8Array(imageData));
   await new Promise((resolve) => setTimeout(resolve, 1600));
+  return {
+    diagnosis: DIAGNOSIS_IDS[h % DIAGNOSIS_IDS.length]!,
+    confidence: 0.32 + ((h >> 8) % 640) / 1000,
+    severity: (h >> 20) % 3,
+    analyzedAt: Date.now(),
+    source: "on-device",
+  };
+}
 
-  const diagnosis = DIAGNOSIS_IDS[h % DIAGNOSIS_IDS.length]!;
-  // Spread confidence across all three tiers deterministically.
-  const confidence = 0.32 + ((h >> 8) % 640) / 1000; // 0.32 – 0.96
-  const severity = (h >> 20) % 3;
-
-  return { diagnosis, confidence, severity, analyzedAt: Date.now() };
+export async function diagnoseLeaf(imageData: ArrayBuffer, aiImage?: string): Promise<DiagnosisResult> {
+  if (aiImage && typeof navigator !== "undefined" && navigator.onLine) {
+    try {
+      const r = await classifyLeafPhoto({ data: { image: aiImage } });
+      return { ...r, analyzedAt: Date.now(), source: "ai" };
+    } catch (e) {
+      console.warn("AI diagnosis unavailable, using on-device check", e);
+    }
+  }
+  return onDevice(imageData);
 }
