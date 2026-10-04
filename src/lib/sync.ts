@@ -5,6 +5,7 @@ import {
   REPORTS_EVENT,
   clearPending,
   loadCoop,
+  loadOfficer,
   loadPending,
   loadReports,
   writeReports,
@@ -41,7 +42,7 @@ async function doSync() {
     const pendingSet = new Set(pendingIds);
     const toSend = local.filter((r) => pendingSet.has(r.id)).slice(0, 50);
     const remote = (await syncReports({
-      data: { code: coop.code, reports: toSend.map(clean) },
+      data: { code: coop.code, reports: toSend.map(clean), ...(loadOfficer() ? { officerPin: loadOfficer()!.pin } : {}) },
     })) as LeafReport[];
     clearPending(toSend.map((r) => r.id));
 

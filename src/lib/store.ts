@@ -28,6 +28,8 @@ export interface LeafReport {
   /** Which phone made the check. */
   deviceId?: string | undefined;
   farmer?: string | undefined;
+  /** Officer who signed off (set by the server from the officer PIN). */
+  reviewedBy?: string | undefined;
 }
 
 export const OUTCOME_LABEL = {
@@ -41,6 +43,38 @@ const LANG_KEY = "kopi.lang";
 const PENDING_KEY = "kopi.pending";
 const COOP_KEY = "kopi.coop";
 const DEVICE_KEY = "kopi.device";
+const FARMER_KEY = "kopi.farmer";
+const OFFICER_KEY = "kopi.officer";
+
+export function loadFarmerName(): string {
+  return localStorage.getItem(FARMER_KEY) ?? "";
+}
+
+/** Name every check from this phone carries, so the officer can match photos to farmers. */
+export function saveFarmerName(name: string) {
+  const n = name.trim().slice(0, 120);
+  localStorage.setItem(FARMER_KEY, n);
+  const me = deviceId();
+  const mine = loadReports().map((r) =>
+    !r.deviceId || r.deviceId === me ? { ...r, farmer: n || undefined, updatedAt: Date.now() } : r,
+  );
+  writeReports(mine);
+  mine.filter((r) => !r.deviceId || r.deviceId === me).forEach((r) => markDirty(r.id));
+}
+
+export type Officer = { name: string; pin: string };
+export function loadOfficer(): Officer | null {
+  try {
+    return JSON.parse(localStorage.getItem(OFFICER_KEY) ?? "null") as Officer | null;
+  } catch {
+    return null;
+  }
+}
+export function saveOfficer(o: Officer | null) {
+  if (o) localStorage.setItem(OFFICER_KEY, JSON.stringify(o));
+  else localStorage.removeItem(OFFICER_KEY);
+  window.dispatchEvent(new Event(REPORTS_EVENT));
+}
 
 export const REPORTS_EVENT = "kopi:reports";
 export const DIRTY_EVENT = "kopi:dirty";
@@ -100,13 +134,13 @@ function update(id: string, patch: Partial<LeafReport>) {
 }
 
 export function saveReport(report: LeafReport) {
-  const full = { ...report, updatedAt: Date.now(), deviceId: deviceId() };
+  const full = { ...report, farmer: loadFarmerName() || report.farmer, updatedAt: Date.now(), deviceId: deviceId() };
   writeReports([full, ...loadReports()].slice(0, 300));
   markDirty(report.id);
 }
 
 export function markReviewed(id: string, outcome: NonNullable<LeafReport["outcome"]> = "confirmed") {
-  update(id, { status: "reviewed", reviewedAt: Date.now(), outcome });
+  update(id, { status: "reviewed", reviewedAt: Date.now(), outcome, reviewedBy: loadOfficer()?.name });
 }
 
 export function requestVisit(id: string, note?: string) {

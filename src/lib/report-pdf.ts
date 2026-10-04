@@ -33,15 +33,17 @@ export async function exportReviewedPdf(reports: LeafReport[], from: string, to:
   const lastY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 60;
   autoTable(doc, {
     startY: lastY + 8,
-    head: [["Checked", "Condition", "Severity", "Confidence", "Reviewed", "Outcome"]],
-    body: reports.map((r) => {
+    head: [["Checked", "Farmer", "Condition", "Severity", "Confidence", "Reviewed", "Signed off by", "Outcome"]],
+    body: [...reports].sort((a, b) => (a.farmer ?? "").localeCompare(b.farmer ?? "") || a.createdAt - b.createdAt).map((r) => {
       const e = ANSWER_BANK[r.diagnosis];
       return [
         fmt(r.createdAt),
+        r.farmer ?? "Unnamed",
         e.name.en,
         e.severityBands[r.severity]?.split(" — ")[0] ?? "",
         `${Math.round(r.confidence * 100)}% (${TIER_LABEL[r.tier].en})`,
         r.reviewedAt ? fmt(r.reviewedAt) : "",
+        r.reviewedBy ?? "",
         OUTCOME_LABEL[r.outcome ?? "confirmed"],
       ];
     }),
