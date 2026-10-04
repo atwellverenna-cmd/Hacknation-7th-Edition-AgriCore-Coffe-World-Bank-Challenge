@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MapPin, Undo2 } from "lucide-react";
 import { ANSWER_BANK, TIER_LABEL } from "@/lib/answer-bank";
 import { PLOT } from "@/lib/cached-data";
 import {
   cancelVisitRequest,
-  loadReports,
+  loadMyReports,
   requestVisit,
   timeAgo,
   type LeafReport,
 } from "@/lib/store";
+import { useReports } from "@/lib/sync";
+import { CoopSync } from "@/components/CoopSync";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -17,7 +19,7 @@ export const Route = createFileRoute("/dashboard")({
       { title: "My farm — Kopi" },
       {
         name: "description",
-        content: "Your queued leaf checks and farm visit requests, stored on this phone.",
+        content: "Your queued leaf checks and farm visit requests, shared with your co-op officer.",
       },
       { property: "og:title", content: "My farm — Kopi" },
       { property: "og:description", content: "Your queued leaf checks and farm visit requests." },
@@ -31,21 +33,19 @@ export const Route = createFileRoute("/dashboard")({
 const DOT = { high: "bg-teal", medium: "bg-amber", low: "bg-rust" } as const;
 
 function DashboardPage() {
-  const [reports, setReports] = useState<LeafReport[]>([]);
+  const reports = useReports(loadMyReports, [] as LeafReport[]);
   const [noteFor, setNoteFor] = useState<string>();
   const [note, setNote] = useState("");
-  useEffect(() => setReports(loadReports()), []);
 
   const queued = reports.filter((r) => r.status === "queued");
   const visitRequests = reports.filter((r) => r.visitRequestedAt);
 
-  const refresh = () => setReports(loadReports());
+  const refresh = () => {};
 
   const submitVisit = (id: string) => {
     requestVisit(id, note);
     setNoteFor(undefined);
     setNote("");
-    refresh();
   };
 
   return (
@@ -55,6 +55,7 @@ function DashboardPage() {
         {PLOT.farmer} · {PLOT.coop} · {PLOT.trees} trees. Your checks waiting for the officer, and
         any visits you've asked for.
       </p>
+      <CoopSync />
 
       {/* Visit requests */}
       <div className="glass-card mt-4 p-4">

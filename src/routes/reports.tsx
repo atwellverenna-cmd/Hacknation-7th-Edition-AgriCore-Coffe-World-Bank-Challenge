@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { ANSWER_BANK, TIER_LABEL } from "@/lib/answer-bank";
-import { loadReports, timeAgo, type LeafReport } from "@/lib/store";
+import { loadMyReports, timeAgo, type LeafReport } from "@/lib/store";
+import { useReports } from "@/lib/sync";
 
 export const Route = createFileRoute("/reports")({
   head: () => ({
     meta: [
       { title: "Saved reports — Kopi" },
-      { name: "description", content: "Your saved leaf checks, stored on this phone and queued for the co-op officer." },
+      { name: "description", content: "Your saved leaf checks, kept on this phone and shared with your co-op officer." },
       { property: "og:title", content: "Saved reports — Kopi" },
-      { property: "og:description", content: "Your saved leaf checks, stored on this phone." },
+      { property: "og:description", content: "Your saved leaf checks, shared with your co-op." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -20,8 +20,7 @@ export const Route = createFileRoute("/reports")({
 const DOT = { high: "bg-teal", medium: "bg-amber", low: "bg-rust" } as const;
 
 function ReportsPage() {
-  const [reports, setReports] = useState<LeafReport[]>([]);
-  useEffect(() => setReports(loadReports()), []);
+  const reports = useReports(loadMyReports, [] as LeafReport[]);
 
   return (
     <>
