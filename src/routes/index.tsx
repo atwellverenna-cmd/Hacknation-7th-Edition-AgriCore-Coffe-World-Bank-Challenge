@@ -66,6 +66,7 @@ function HomePage() {
       status: "queued",
       thumbnail: thumb,
       source: diagnosis.source,
+      farmer: PLOT.farmer,
     });
   };
 
