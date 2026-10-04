@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, WifiOff } from "lucide-react";
 import leafRustImg from "@/assets/leaf-rust.jpg";
 import { DiagnosisCard } from "@/components/DiagnosisCard";
@@ -39,11 +39,10 @@ function HomePage() {
   const [result, setResult] = useState<DiagnosisResult>();
   const [lang, setLang] = useState<Lang>("en");
 
-  // Read stored language only in the browser, after mount.
-  useRef(() => {});
-  if (typeof window !== "undefined" && phase === "idle" && lang === "en") {
-    // no-op; language toggles explicitly
-  }
+  // Read stored language only in the browser, after mount (SSR-safe).
+  useEffect(() => {
+    setLang(loadLang());
+  }, []);
 
   const handleFile = async (file: File) => {
     const url = URL.createObjectURL(file);
