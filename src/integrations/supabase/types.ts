@@ -35,6 +35,41 @@ export type Database = {
         }
         Relationships: []
       }
+      officers: {
+        Row: {
+          active: boolean
+          coop_code: string
+          created_at: string
+          id: string
+          name: string
+          pin_hash: string
+        }
+        Insert: {
+          active?: boolean
+          coop_code: string
+          created_at?: string
+          id?: string
+          name: string
+          pin_hash: string
+        }
+        Update: {
+          active?: boolean
+          coop_code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          pin_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "officers_coop_code_fkey"
+            columns: ["coop_code"]
+            isOneToOne: false
+            referencedRelation: "coops"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       reports: {
         Row: {
           confidence: number
@@ -46,6 +81,7 @@ export type Database = {
           id: string
           outcome: string | null
           reviewed_at: string | null
+          reviewed_by: string | null
           severity: number
           source: string | null
           status: string
@@ -65,6 +101,7 @@ export type Database = {
           id: string
           outcome?: string | null
           reviewed_at?: string | null
+          reviewed_by?: string | null
           severity?: number
           source?: string | null
           status?: string
@@ -84,6 +121,7 @@ export type Database = {
           id?: string
           outcome?: string | null
           reviewed_at?: string | null
+          reviewed_by?: string | null
           severity?: number
           source?: string | null
           status?: string
